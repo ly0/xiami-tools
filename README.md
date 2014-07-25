@@ -1,14 +1,25 @@
 虾米工具包
 ============
 
-* `Xiami.get_stared_song(self, uid=None)` 返回某用户所有收藏曲目列表, uid不写默认为登录用户. (测试速度过快会被ban, 一页等待1s)
-* `Xiami.get_stared_collection(self, uid=None)` 返回某用户所有收藏精选集列表, uid不写默认为登录用户.
-* `Xiami.get_stared_collection(self, uid=None)` 返回某用户所有收藏专集列表, uid不写默认为登录用户.
+把虾米的一些接口做成了库方便其他程序调用
+
+* `Xiami.get_stared_song(self, uid=None, full=False)` 返回某用户所有收藏曲目列表, uid不写默认为登录用户. (测试速度过快会被ban, 一页等待1s)
+* `Xiami.get_stared_collection(self, uid=None, full=False)` 返回某用户所有收藏精选集列表, uid不写默认为登录用户.
+* `Xiami.get_stared_album(self, uid=None, full=False)` 返回某用户所有收藏专集列表, uid不写默认为登录用户.
 * `Xiami.set_320k()` 设置当前用户默认下载曲目为高音质
 * `Xiami.download_song(self, song_id)` 返回编号为 *song_id* 的曲目的相关信息和下载地址, 详细返回请看范例
 * `Xiami.download_album(self, album_id)` 返回编号为 *album_id* 的专辑的相关信息和专辑内曲目下载地址, 详细返回请看范例
 * `Xiami.download_playlist(self, col_id)` 同上
 * `Xiami.star_song(self, songid)` 收藏曲目编号为 *songid* 的歌曲
+* `Xiami.get_session(self)` 获得当前 *Xiami* 实例的requests.Session对象
+* `Xiami.get_random_songs(self, uid=None, full=False)
+* `Xiami.get_artist_topsongs(self, artist_id, full=False)` 
+* `Xiami.get_artist_albums(self, artist_id, full=False)`
+
+
+get_ 类的函数可以指定 *full* 参数来确定是否返回详细信息
+download_ 类的函数返回一个简略但是足够信息的曲目列表
+
 
 #### 范例
 
