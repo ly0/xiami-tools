@@ -12,9 +12,9 @@
 * `Xiami.download_playlist(self, col_id)` 同上
 * `Xiami.star_song(self, songid)` 收藏曲目编号为 *songid* 的歌曲
 * `Xiami.get_session(self)` 获得当前 *Xiami* 实例的requests.Session对象
-* `Xiami.get_random_songs(self, uid=None, full=False)
-* `Xiami.get_artist_topsongs(self, artist_id, full=False)` 
-* `Xiami.get_artist_albums(self, artist_id, full=False)`
+* `Xiami.get_random_songs(self, uid=None, full=False)` 不知道干什么用的
+* `Xiami.get_artist_topsongs(self, artist_id, full=False)` 获得艺术家最热门的一些曲目
+* `Xiami.get_artist_albums(self, artist_id, full=False)` 获得艺术家的专辑列表
 
 
 get_ 类的函数可以指定 *full* 参数来确定是否返回详细信息
