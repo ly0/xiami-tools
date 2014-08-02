@@ -50,6 +50,8 @@ def safe_get(url):
             continue
 
 xiami = Xiami('username', 'password')
+# xiami = Xiami(username='taobaousername', password='taobaopassword', taobao=True)
+
 xiami.set_320k()
 cookies = ';'.join(['%s=%s' % (k, v)
                     for k, v in xiami.session.cookies.items()])
