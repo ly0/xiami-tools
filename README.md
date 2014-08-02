@@ -1,6 +1,10 @@
 虾米工具包
 ============
 
+## 更新
+* [2014/8/2] 增加虾米的淘宝帐号登录. 调用方法 `Xiami(username, password, taobao=True)`.
+  以及用 cookies 登录的办法 (解决接口不能用的终极方案) `Xiami(username, password, cookies=COOKIES字典)`
+
 把虾米的一些接口做成了库方便其他程序调用
 
 * `Xiami.get_stared_song(self, uid=None, full=False)` 返回某用户所有收藏曲目列表, uid不写默认为登录用户. 
