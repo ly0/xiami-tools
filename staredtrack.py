@@ -62,18 +62,17 @@ for entry in stared_list:
     song = xiami.download_song(entry)
     filepath = './stared/{0}-{1}.mp3'.format(
         Utils.text_validate(song['album_name']),
-        Utils.text_validate(song['song_name']))
+        Utils.text_validate(song['title']))
     cmd = 'axel --alternate -n5 -H "Cookies:{2}" "{0}" -o "{1}"'.format(
-        song['song_location'], filepath, cookies)
+        song['location'], filepath, cookies)
 
-    song_logo = re.sub('_\d+', '', song['song_logo'])
+    song_logo = re.sub('_\d+', '', song['album_pic'])
     artist_logo = re.sub('_\d+', '', song['artist_logo'])
     os.system(cmd)
 
     logo_song = safe_get(song_logo)
-    logo_artist = safe_get(artist_logo)
+    #logo_artist = safe_get(artist_logo)
 
     # mutagen area
-
-    Mutagentools.add_tags(filepath, song['song_name'], song['album_name'], song[
-                          'artist_name'], logo_song, logo_artist)
+    Mutagentools.add_tags(filepath, song['object_name'], song['album_name'], song[
+                          'artist_name'], logo_song)
