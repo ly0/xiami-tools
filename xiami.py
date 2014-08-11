@@ -304,34 +304,42 @@ class Xiami(Xiamibase):
     def get_stared_songs(self, uid=None, full=False):
         """慎用full=True, 这会导致验证码问题
         """
-        def _replace_hq(x):
-            if self.hq:
-                x['location'] = Utils.url_decrypt(json.loads(self._safe_get(
-                    'http://www.xiami.com/song/gethqsong/sid/'
-                    + x['song_id'], headers=Utils.header).content)['location'])
+        if not uid:
+            if not 'uid' in self.account:
+                return
+            uid = self.account['uid']
+            logger.debug('logged in, use www.xiami.com/playersong/getgradesong')
+            ret = self._safe_get('http://www.xiami.com/playersong/getgradesong')
+            jdata = json.loads(ret)
+            return [song['song_id'] for song in jdata['data']['songs']]
 
-            return x
-        if full:
-            return self._lib_func('songs', _replace_hq, uid)
-        else:
-            return self._lib_func('songs', lambda x: x['song_id'], uid)
+        url = 'http://www.xiami.com/space/lib-song/u/{uid}/page/{page}'
+
+        def _bs_func(bsobj):
+            foo = bsobj.findAll(attrs={'class': 'song_name'})
+            if not foo:
+                return None
+            lst = []
+            for i in foo:
+                lst.append(i.find('a')['href'].replace('http://www.xiami.com/song/', ''))
+            return lst
+        return self._lib_func(_bs_func, url, uid)
 
     def download_song(self, song_id):
+        # 妈蛋,虾米把android的接口都弄跪了
         song_info = self._safe_get(
-            'http://www.xiami.com/app/android/song?id=%s' % (song_id),
+            'http://www.xiami.com/song/playlist/id/%s' % (song_id),
             headers={'user-agent': 'Mozilla/5.0'}).content
-        jdata = json.loads(song_info)
-        info = jdata['song']
+        jdata = xmltodict.parse(song_info)
+        info = jdata['playlist']['trackList']['track']
         if self.hq:
-            info['song_location'] = Utils.url_decrypt(json.loads(self._safe_get(
+            info['location'] = Utils.url_decrypt(json.loads(self._safe_get(
                 'http://www.xiami.com/song/gethqsong/sid/'
                 + song_id, headers=Utils.header).content)['location'])
-
         return info
 
     def _download_multi(self, album_id, stype):
         info = {}
-        # XML 接口比 JSON 接口有效率, 直接给出了专辑名字而不是只给出 id
         album_info = self._safe_get('http://www.xiami.com/song/playlist/id/'
                                       '%s/type/%s' % (album_id, stype),
                                       headers={'User-Agent': 'Mozilla/5.0'}).content
@@ -389,39 +397,9 @@ class Xiami(Xiamibase):
         else:
             logger.error('User not logged in.')
 
-    def _safe_get(self, *args, **kwargs):
-        while True:
-            try:
-                data = self.session.get(*args, **kwargs)
-            except Exception as e:
-                # 失败重试
-                logger.error('Exception in _safe_get:' + str(e))
-                continue
-
-            if 'regcheckcode.taobao.com' in data.content:
-                print 'Captcha needed.'
-                # 目前只是把整个requests.Response和session对象传给验证码处理函数, 函数需自行处理完后重试.
-                self.captcha_handler(self.session, data)
-                continue
-            return data
-
-    def _safe_post(self, *args, **kwargs):
-        while True:
-            try:
-                data = self.session.post(*args, **kwargs)
-            except Exception as e:
-                # 失败重试
-                logger.error('Exception in _safe_get:' + str(e))
-                continue
-
-            if 'regcheckcode.taobao.com' in data.content:
-                # 目前只是把整个requests.Response和session对象传给验证码处理函数, 函数需自行处理完后重试.
-                self.captcha_handler(self.session, data)
-                continue
-            return data
 
 
-    def _lib_func(self, func, handler, uid=None, url=None):
+    def _lib_func(self, func, url, uid=None):
         """
         :param func: 调用的接口
         :param func: 对条目的处理函数
@@ -433,34 +411,56 @@ class Xiami(Xiamibase):
         page = 1
         obj_list = []
         while True:
-            logger.debug('get_stared_song page %s' % page)
-            if not url:
-                foo = 'http://www.xiami.com/app/android/lib-{0}?uid={1}&page={2}'.format(func, uid, page)
-                content = self._safe_get(foo, headers=Utils.header).content
-            else:
-                content = self._safe_get(
-                    url.format(uid, page), headers=Utils.header).content
-            jdata = json.loads(content)
+            logger.debug('get ' + url.format(uid=uid, page=page))
+            content = self._safe_get(
+                url.format(uid=uid, page=page), headers=Utils.header).content
 
-            if jdata[func] is None or jdata[func] == []:
+            bs = BeautifulSoup(content)
+            foo = func(bs)
+            if not foo:
                 break
-
-            for entry in jdata[func]:
-                obj_list.append(handler(entry))
+            obj_list.extend(foo)
 
             page = page + 1
         return obj_list
 
     def get_stared_collections(self, uid=None):
-        return self._lib_func('collects', lambda x: x['obj_id'], uid)
+        url = 'http://www.xiami.com/space/collect-fav/u/{uid}/page/{page}'
+
+        def _bs_func(bsobj):
+            foo = bsobj.findAll(attrs={'class': 'name'})
+            if not foo:
+                return None
+            lst = []
+            for i in foo:
+                lst.append(i.find('a')['href'].replace('/collect/', ''))
+            return lst
+        return self._lib_func(_bs_func, url, uid)
 
     def get_stared_albums(self, uid=None):
-        return self._lib_func('albums', lambda x: x['obj_id'], uid)
+        url = 'http://www.xiami.com/space/lib-album/u/{uid}/page/{page}'
+
+        def _bs_func(bsobj):
+            foo = bsobj.findAll(attrs={'class': 'name'})
+            if not foo:
+                return None
+            lst = []
+            for i in foo:
+                lst.append(i.find('a')['href'].replace('/album/', ''))
+            return lst
+
+        return self._lib_func(_bs_func, url, uid)
 
     def get_session(self):
         """获得requests的session
         """
         return self.session
+
+    @Utils.check_username
+    def get_graded_songs(self):
+        url = 'http://www.xiami.com/playersong/getgradesong'
+        content = self._safe_get(url, headers=Utils.header).content
+        return [i['song_id'] for i in json.loads(content)['data']['songs']]
 
     @Utils.check_username
     def add_new_playlog(self, song_id):
@@ -501,3 +501,4 @@ class Xiami(Xiamibase):
         else:
             return self._lib_func('albums', lambda x: x['album_id'],
                                   uid=artist_id, url=url)
+ 
