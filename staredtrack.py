@@ -67,12 +67,11 @@ for entry in stared_list:
         song['location'], filepath, cookies)
 
     song_logo = re.sub('_\d+', '', song['album_pic'])
-    artist_logo = re.sub('_\d+', '', song['artist_logo'])
     os.system(cmd)
 
     logo_song = safe_get(song_logo)
-    #logo_artist = safe_get(artist_logo)
 
     # mutagen area
-    Mutagentools.add_tags(filepath, song['object_name'], song['album_name'], song[
-                          'artist_name'], logo_song)
+    Mutagentools.add_tags(filepath, song['title'], song['album_name'], song[
+                          'artist'])
+
