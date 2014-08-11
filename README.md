@@ -2,8 +2,13 @@
 ============
 
 ## 更新
+* [2014/8/12] 1.替换掉android接口中
 * [2014/8/2] 增加虾米的淘宝帐号登录. 调用方法 `Xiami(username, password, taobao=True)`.
   以及用 cookies 登录的办法 (解决接口不能用的终极方案) `Xiami(username, password, cookies=COOKIES字典)`
+
+## 提示
+* 想要下载自己的收藏歌曲列表登录后比未登录获取的速度快 (接口不同)
+
 
 把虾米的一些接口做成了库方便其他程序调用
 
