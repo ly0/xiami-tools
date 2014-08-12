@@ -327,10 +327,21 @@ class Xiami(Xiamibase):
 
     def download_song(self, song_id):
         # 妈蛋,虾米把android的接口都弄跪了
-        song_info = self._safe_get(
-            'http://www.xiami.com/song/playlist/id/%s' % (song_id),
-            headers={'user-agent': 'Mozilla/5.0'}).content
-        jdata = xmltodict.parse(song_info)
+        while True:
+            
+            song_info = self._safe_get(
+                'http://www.xiami.com/song/playlist/id/%s' % (song_id),
+                headers={'user-agent': 'Mozilla/5.0'}).content
+            try:
+                jdata = xmltodict.parse(song_info)
+                break
+            except:
+                logger.debug('song_id:%s failed to parse xml, get new sec' % song_id)
+                sec = re.findall('sec=(.*?);', song_info)[0]
+                # update sec in cookies
+                self.session.cookies['sec'] = sec
+                continue
+
         info = jdata['playlist']['trackList']['track']
         if self.hq:
             info['location'] = Utils.url_decrypt(json.loads(self._safe_get(
