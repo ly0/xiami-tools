@@ -73,5 +73,5 @@ for entry in stared_list:
 
     # mutagen area
     Mutagentools.add_tags(filepath, song['title'], song['album_name'], song[
-                          'artist'])
+                          'artist'], logo_song)
 
