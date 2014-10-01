@@ -1,4 +1,8 @@
 # coding=utf8
+"""
+    该脚本用于下载所有用户加星(收藏)的歌曲到 ./stared 目录下，并且内嵌专辑图片
+"""
+
 import os
 import re
 import time
