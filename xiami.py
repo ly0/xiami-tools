@@ -210,7 +210,7 @@ class Xiami(Xiamibase):
         """
 
     def from_taobao(self, username, password):
-        """淘宝帐号登录, username 为淘宝帐号, password为支付宝帐号
+        """淘宝帐号登录, username 为淘宝帐号, password为对应密码
         注意不要和 alipay 帐号弄混了
         """
         captcha = ''
