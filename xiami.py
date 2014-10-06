@@ -302,17 +302,6 @@ class Xiami(Xiamibase):
             logger.error('Not vip')
 
     def get_stared_songs(self, uid=None, full=False):
-        """慎用full=True, 这会导致验证码问题
-        """
-        if not uid:
-            if not 'uid' in self.account:
-                return
-            uid = self.account['uid']
-            logger.debug('logged in, use www.xiami.com/playersong/getgradesong')
-            ret = self._safe_get('http://www.xiami.com/playersong/getgradesong')
-            jdata = json.loads(ret)
-            return [song['song_id'] for song in jdata['data']['songs']]
-
         url = 'http://www.xiami.com/space/lib-song/u/{uid}/page/{page}'
 
         def _bs_func(bsobj):
@@ -466,12 +455,6 @@ class Xiami(Xiamibase):
         """获得requests的session
         """
         return self.session
-
-    @Utils.check_username
-    def get_graded_songs(self):
-        url = 'http://www.xiami.com/playersong/getgradesong'
-        content = self._safe_get(url, headers=Utils.header).content
-        return [i['song_id'] for i in json.loads(content)['data']['songs']]
 
     @Utils.check_username
     def add_new_playlog(self, song_id):
