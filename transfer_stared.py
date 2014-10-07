@@ -7,7 +7,7 @@ from xiami import *
 xiami1 = Xiami(username='transferer', password='psasword1', taobao=True)
 xiami2 = Xiami(username='transferee', password='password2', taobao=True)
 
-stared = xiami1.get_graded_songs()
+stared = xiami1.get_stared_songs()
 for item in stared:
     print 'staring song:', item
     xiami2.star_song(item)
