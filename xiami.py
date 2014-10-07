@@ -100,6 +100,9 @@ class Utils:
 class Xiamibase(object):
     """基类定义了基本的get和post访问
     """
+    header = {'User-Agent': 'Mozilla/5.0',
+              'Referer': 'http://img.xiami.com/static/swf/seiya/player.swf?v=1394535902294'}
+
     def __init__(self):
         self.session = requests.session()
         self.captcha_handler = self._captcha_handler
@@ -109,6 +112,13 @@ class Xiamibase(object):
         while True:
             try:
                 data = self.session.get(*args, **kwargs)
+
+                if data.status_code == 403:
+                    sec = re.findall('<script>document.cookie="sec=(.*?);', data.content)
+                    if len(sec) != 0:
+                        self.session.cookies['sec'] = sec[0]
+                        logger.debug('403 update sec=' + sec[0])
+                        continue
             except Exception as e:
                 # 失败重试
                 logger.error('Exception in _safe_get:' + str(e))
@@ -125,6 +135,13 @@ class Xiamibase(object):
         while True:
             try:
                 data = self.session.post(*args, **kwargs)
+
+                if data.status_code == 403:
+                    sec = re.findall('<script>document.cookie="sec=(.*?);', data.content)
+                    if len(sec) != 0:
+                        self.session.cookies['sec'] = sec[0]
+                        logger.debug('403 ' + 'update sec=', sec[0])
+                        continue
             except Exception as e:
                 # 失败重试
                 logger.error('Exception in _safe_get:' + str(e))
@@ -210,7 +227,7 @@ class Xiami(Xiamibase):
         """
 
     def from_taobao(self, username, password):
-        """淘宝帐号登录, username 为淘宝帐号, password为对应密码
+        """淘宝帐号登录, username 为淘宝帐号, password为支付宝帐号
         注意不要和 alipay 帐号弄混了
         """
         captcha = ''
@@ -392,10 +409,13 @@ class Xiami(Xiamibase):
                 }
         ret = self._safe_post(
             'http://www.xiami.com/ajax/addtag', headers=header, data=data)
-        if json.loads(ret.content)['status'] == 'ok':
-            logger.info('star song:' + str(songid))
-        else:
-            logger.error('User not logged in.')
+        try:
+            if json.loads(ret.content)['status'] == 'ok':
+                logger.info('star song:' + str(songid))
+            else:
+                logger.error('User not logged in.')
+        except:
+            print ret.content
 
 
 
@@ -455,6 +475,13 @@ class Xiami(Xiamibase):
         """获得requests的session
         """
         return self.session
+    """
+    @Utils.check_username
+    def get_graded_songs(self):
+        url = 'http://www.xiami.com/playersong/getgradesong'
+        content = self._safe_get(url, headers=Utils.header).content
+        return [i['song_id'] for i in json.loads(content)['data']['songs']]
+    """
 
     @Utils.check_username
     def add_new_playlog(self, song_id):
