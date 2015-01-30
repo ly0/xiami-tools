@@ -2,6 +2,7 @@
 ============
 
 ## 更新
+* [2015/1/30] 初始化Xiami类时可以加入`captcha_handler`指定验证码处理函数，该函数需要返回验证码，交互和显示都用户实现的函数内自行处理
 * [2014/8/12] 1.替换掉android接口中
 * [2014/8/2] 增加虾米的淘宝帐号登录. 调用方法 `Xiami(username, password, taobao=True)`.
   以及用 cookies 登录的办法 (解决接口不能用的终极方案) `Xiami(username, password, cookies=COOKIES字典)`
