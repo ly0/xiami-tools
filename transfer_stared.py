@@ -4,8 +4,21 @@
 """
 from xiami import *
 
-xiami1 = Xiami(username='transferer', password='psasword1', taobao=True)
-xiami2 = Xiami(username='transferee', password='password2', taobao=True)
+# source: baidupcsapi repo Issue 3 on github
+def upload_img42(img):
+    url = 'http://img42.com'
+    req = urllib2.Request(url, data=img)
+    msg = urllib2.urlopen(req).read()
+    return '%s/%s' % (url, json.loads(msg)['id'])
+
+def captcha(jpeg):
+    print '* captcha needed'
+    print 'captcha url:', upload_img42(jpeg)
+    foo = raw_input('captcha >')
+    return foo
+
+xiami1 = Xiami(username='transferer', password='psasword1', taobao=True, captcha_handler=captcha)
+xiami2 = Xiami(username='transferee', password='password2', taobao=True, captcha_handler=captcha)
 
 stared = xiami1.get_stared_songs()
 for item in stared:

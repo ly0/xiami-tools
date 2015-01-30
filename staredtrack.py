@@ -13,6 +13,18 @@ import captcha
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, TIT2, TPE1, TALB, APIC
 
+# source: baidupcsapi repo Issue 3 on github
+def upload_img42(img):
+    url = 'http://img42.com'
+    req = urllib2.Request(url, data=img)
+    msg = urllib2.urlopen(req).read()
+    return '%s/%s' % (url, json.loads(msg)['id'])
+
+def captcha(jpeg):
+    print '* captcha needed'
+    print 'captcha url:', upload_img42(jpeg)
+    foo = raw_input('captcha >')
+    return foo
 
 class Mutagentools:
 
@@ -53,8 +65,8 @@ def safe_get(url):
         except:
             continue
 
-xiami = Xiami('username', 'password')
-# xiami = Xiami(username='taobaousername', password='taobaopassword', taobao=True)
+xiami = Xiami(username='username', password='password', captcha_handler=captcha)
+# xiami = Xiami(username='taobaousername', password='taobaopassword', taobao=True, captcha_handler=captcha)
 
 xiami.set_320k()
 cookies = ';'.join(['%s=%s' % (k, v)

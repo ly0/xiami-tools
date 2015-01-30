@@ -6,6 +6,7 @@ import json
 import time
 import re
 import logging
+from functools import partial
 import xmltodict
 import requests
 from BeautifulSoup import BeautifulSoup
@@ -103,10 +104,13 @@ class Xiamibase(object):
     header = {'User-Agent': 'Mozilla/5.0',
               'Referer': 'http://img.xiami.com/static/swf/seiya/player.swf?v=1394535902294'}
 
-    def __init__(self):
+    def __init__(self, captcha_handler=None):
         self.session = requests.session()
         self.captcha_handler = self._captcha_handler
-        self.captcha_func = captcha.show
+        if captcha_handler:
+            self.captcha_func = captcha_handler
+        else:
+            self.captcha_func = captcha.show
 
     def _safe_get(self, *args, **kwargs):
         while True:
@@ -153,6 +157,11 @@ class Xiamibase(object):
                 continue
             return data
 
+    def _get_captcha(captcha_data):
+        captcha.show(captcha_data)
+        code = raw_input('captcha >')
+        return code
+
     def _captcha_handler(self, *args, **kwargs):
 
         session = args[0]
@@ -168,8 +177,14 @@ class Xiamibase(object):
 
         captcha_data = session.get(captcha_url, headers=header).content
 
-        captcha.show(captcha_data)
-        code = raw_input('captcha >')
+        code = self.captcha_func(captcha_data)
+        """
+        if handler:
+            code = handler(captcha_data)
+        else:
+            captcha.show(captcha_data)
+            code = raw_input('captcha >')
+        """
 
         url = 'http://www.xiami.com/alisec/captcha/tmdgetv3.php'
         data = {'code': code,
@@ -184,8 +199,8 @@ class Xiamibase(object):
 class Xiami(Xiamibase):
     """Xiami类定义了虾米的登录和操作"""
     def __init__(self, username=None, password=None,
-                 taobao=False, cookies=None):
-        super(Xiami, self).__init__()
+                 taobao=False, cookies=None, *args, **kwargs):
+        super(Xiami, self).__init__(*args, **kwargs)
         self.account = {}
         self.hq = False
         self.username = username
@@ -266,8 +281,7 @@ class Xiami(Xiamibase):
                     session_id = bs.find('input', {'name': 'cid'})['value']
                     captcha_url = 'http://pin.aliyun.com/get_img?identity=passport.alipay.com&sessionID=%s' % session_id
                     logger.debug('captcha url:' + captcha_url)
-                    self.captcha_func(self._safe_get(captcha_url, headers={'User-agent': 'Mozilla/5.0'}).content)
-                    captcha = raw_input('captcha> ')
+                    captcha = self.captcha_func(self._safe_get(captcha_url, headers={'User-agent': 'Mozilla/5.0'}).content)
                     continue  # 重新提交一次
                 else:
                     print '未知错误'
