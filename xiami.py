@@ -280,7 +280,10 @@ class Xiami(Xiamibase):
                     captcha = self.captcha_func(self._safe_get(captcha_url, headers={'User-agent': 'Mozilla/5.0'}).content)
                     continue  # 重新提交一次
                 else:
-                    print '未知错误'
+                    if jdata['content']['data'].get('titleMsg', '') == u'\u9a8c\u8bc1\u7801\u9519\u8bef\uff0c\u8bf7\u91cd\u65b0\u8f93\u5165':
+                        print 'Wrong captcha'
+                        captcha = ''
+                        continue
                     raise Xiamiexp('unknown')
 
             # 登录成功, 将 st 传递给虾米
