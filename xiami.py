@@ -273,11 +273,7 @@ class Xiami(Xiamibase):
             # 出错处理
             if jdata['content']['status'] == -1:
                 logger.debug('error,' + str(jdata))
-                # 有时候会有莫名其妙的问题
-                if 'titleMsg' not in jdata['content']['data']:
-                    continue
-                err_msg = jdata['content']['data']['titleMsg']
-                if err_msg == u'请输入验证码' or err_msg == u'验证码错误，请重新输入':
+                if jdata['content'].get('data', {}).get('checkCodeLink'):
                     session_id = bs.find('input', {'name': 'cid'})['value']
                     captcha_url = 'http://pin.aliyun.com/get_img?identity=passport.alipay.com&sessionID=%s' % session_id
                     logger.debug('captcha url:' + captcha_url)
