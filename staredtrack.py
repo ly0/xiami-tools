@@ -65,7 +65,7 @@ def safe_get(url):
         except:
             continue
 
-xiami = Xiami(username='spamds2k8', password='lyj920330', captcha_handler=captcha, taobao=True)
+xiami = Xiami(username='', password='', captcha_handler=captcha, taobao=True)
 # xiami = Xiami(username='taobaousername', password='taobaopassword', taobao=True, captcha_handler=captcha)
 
 xiami.set_320k()
