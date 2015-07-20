@@ -11,6 +11,7 @@ import xmltodict
 import requests
 from BeautifulSoup import BeautifulSoup
 import captcha
+import rsa
 
 logger = logging.getLogger()
 formatter = logging.Formatter(
@@ -178,14 +179,13 @@ class Xiamibase(object):
         captcha_data = session.get(captcha_url, headers=header).content
 
         code = self.captcha_func(captcha_data)
-        """
+        
         if handler:
             code = handler(captcha_data)
         else:
             captcha.show(captcha_data)
             code = raw_input('captcha >')
-        """
-
+        
         url = 'http://www.xiami.com/alisec/captcha/tmdgetv3.php'
         data = {'code': code,
                 'sessionID': input_session_id,
@@ -245,13 +245,31 @@ class Xiami(Xiamibase):
         """淘宝帐号登录, username 为淘宝帐号, password为支付宝帐号
         注意不要和 alipay 帐号弄混了
         """
+
         captcha = ''
         url = 'https://passport.alipay.com/mini_login.htm?lang=&appName=xiami&appEntrance=taobao&cssLink=&styleType=vertical&bizParams=&notLoadSsoView=&notKeepLogin=&rnd=0.6477347570091512?lang=zh_cn&appName=xiami&appEntrance=taobao&cssLink=https%3A%2F%2Fh.alipayobjects.com%2Fstatic%2Fapplogin%2Fassets%2Flogin%2Fmini-login-form-min.css%3Fv%3D20140402&styleType=vertical&bizParams=&notLoadSsoView=true&notKeepLogin=true&rnd=0.9090916193090379'
         bs = BeautifulSoup(self._safe_get(url).content)
 
+        check_url = 'https://passport.alipay.com/newlogin/account/check.do?fromSite=0'
+        check_data = {
+            'loginId': username,
+            'appName': 'xiami',
+            'appEntrance': 'taobao',
+        }
+
+        ret = self._safe_post(check_url, check_data)
+        print ret.content
+
+        rsa_n = int(bs.find('input', {"id": "fm-modulus"}).get('value'), base=16)
+        rsa_e = 65537
+
+        public_key = rsa.PublicKey(rsa_n, rsa_e)
+        encrypted_password = rsa.encrypt(password, public_key).encode('hex')
+
         while True:
             data = {'loginId': username,
-                'password': password,
+                #'password': password,
+                'password2': encrypted_password,
                 'appName': 'xiami',
                 'appEntrance': 'taobao',
                 'hsid': bs.find('input', {'name': 'hsid'})['value'],
@@ -275,7 +293,7 @@ class Xiami(Xiamibase):
                 logger.debug('error,' + str(jdata))
                 if jdata['content'].get('data', {}).get('checkCodeLink'):
                     session_id = bs.find('input', {'name': 'cid'})['value']
-                    captcha_url = 'http://pin.aliyun.com/get_img?identity=passport.alipay.com&sessionID=%s' % session_id
+                    captcha_url = jdata['content']['data']['checkCodeLink']
                     logger.debug('captcha url:' + captcha_url)
                     captcha = self.captcha_func(self._safe_get(captcha_url, headers={'User-agent': 'Mozilla/5.0'}).content)
                     continue  # 重新提交一次
